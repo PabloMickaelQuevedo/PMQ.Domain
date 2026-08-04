@@ -1,0 +1,26 @@
+<Project>
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- IDomainEvent herda de INotification para ser despachável pelo mediator. -->
+    <PackageVersion Include="PMQ.Mediator" Version="1.0.0" />
+    <!--
+      Entity e ValueObject herdam de Validatable.
+      Exige 1.1.0: é a versão em que Validatable passou para o namespace PMQ.Notifications.
+    -->
+    <PackageVersion Include="PMQ.Notifications" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Testes">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <PackageVersion Include="Shouldly" Version="4.3.0" />
+    <PackageVersion Include="coverlet.collector" Version="10.0.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+  </ItemGroup>
+
+</Project>

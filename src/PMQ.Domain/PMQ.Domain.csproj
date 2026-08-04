@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>PMQ.Domain</PackageId>
+    <Version>1.0.0</Version>
+    <Product>PMQ.Domain</Product>
+    <Description>
+      Domain-Driven Design building blocks for .NET: entities with identity-based equality, aggregate roots, value objects and domain events. Validation is accumulated as notifications instead of thrown as exceptions.
+    </Description>
+    <PackageProjectUrl>https://github.com/PabloMickaelQuevedo/PMQ.Domain</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/PabloMickaelQuevedo/PMQ.Domain.git</RepositoryUrl>
+    <PackageTags>ddd;domain-driven-design;entity;aggregate;value-object;domain-events;notifications</PackageTags>
+    <IncludeLicenseFile>true</IncludeLicenseFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PMQ.Mediator" />
+    <PackageReference Include="PMQ.Notifications" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="PMQ.Domain.Tests" />
+  </ItemGroup>
+
+</Project>
