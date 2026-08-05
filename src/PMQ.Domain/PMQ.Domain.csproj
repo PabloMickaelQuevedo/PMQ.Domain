@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageId>PMQ.Domain</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Product>PMQ.Domain</Product>
     <Description>
       Domain-Driven Design building blocks for .NET: entities with identity-based equality, aggregate roots, value objects and domain events. Validation is accumulated as notifications instead of thrown as exceptions.
