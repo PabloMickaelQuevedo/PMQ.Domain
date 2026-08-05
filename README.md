@@ -1,44 +1,46 @@
 # PMQ.Domain
 
-Blocos de construção de Domain-Driven Design para .NET: entidades com igualdade por identidade, raízes de agregado, value objects e domain events.
+Domain-Driven Design building blocks for .NET: entities with identity-based equality, aggregate roots, value objects and domain events.
 
-A validação é **acumulada como notificação, nunca lançada como exceção**.
+Validation is **accumulated as notifications, never thrown as exceptions**.
 
 [![NuGet](https://img.shields.io/nuget/v/PMQ.Domain.svg)](https://www.nuget.org/packages/PMQ.Domain)
 
-## Instalação
+> 🇧🇷 [Leia em português](README.pt-BR.md)
+
+## Installation
 
 ```bash
 dotnet add package PMQ.Domain
 ```
 
-Requer **.NET 10**. Depende de [PMQ.Mediator](https://github.com/PabloMickaelQuevedo/PMQ.Mediator) (para despachar domain events) e [PMQ.Notifications](https://github.com/PabloMickaelQuevedo/PMQ.Notifications) (para o `Validatable`).
+Requires **.NET 10**. Depends on [PMQ.Mediator](https://github.com/PabloMickaelQuevedo/PMQ.Mediator) (to dispatch domain events) and [PMQ.Notifications](https://github.com/PabloMickaelQuevedo/PMQ.Notifications) (for `Validatable`).
 
-## Por que sem exceções
+## Why no exceptions
 
-Exceção é para erro de programação. Regra de negócio violada é resultado esperado — e tratá-la como exceção custa caro e, pior, reporta apenas a **primeira** falha. Uma entidade que acumula notificações devolve todas de uma vez:
+Exceptions are for programming errors. A violated business rule is an expected outcome — and treating it as an exception is expensive and, worse, reports only the **first** failure. An entity that accumulates notifications returns all of them at once:
 
 ```json
 {
   "status": 422,
   "errors": [
-    { "field": "Items", "message": "O item deve ter no máximo 200 caracteres." },
-    { "field": "Items", "message": "Informe ao menos um item." }
+    { "field": "Items", "message": "Item must be at most 200 characters." },
+    { "field": "Items", "message": "Provide at least one item." }
   ]
 }
 ```
 
-## Componentes
+## Components
 
-| Tipo | Papel |
+| Type | Role |
 |---|---|
-| `Entity<TId>` | Identidade própria, igualdade por identidade, validação e domain events |
-| `IAggregateRoot` | Marca a fronteira de consistência transacional |
-| `ValueObject` | Igualdade por valor, a partir dos componentes declarados |
-| `IDomainEvent` / `DomainEvent` | Fato ocorrido, despachável pelo PMQ.Mediator |
-| `IHasDomainEvents` | Contrato não genérico para a infraestrutura coletar eventos |
+| `Entity<TId>` | Own identity, identity-based equality, validation and domain events |
+| `IAggregateRoot` | Marks the boundary of transactional consistency |
+| `ValueObject` | Value-based equality, from the declared components |
+| `IDomainEvent` / `DomainEvent` | A fact that occurred, dispatchable by PMQ.Mediator |
+| `IHasDomainEvents` | Non-generic contract for infrastructure to collect events |
 
-## Entidade
+## Entity
 
 ```csharp
 public sealed class Order : Entity<Guid>, IAggregateRoot
@@ -59,9 +61,9 @@ public sealed class Order : Entity<Guid>, IAggregateRoot
             order.AddItem(item);
 
         if (order._items.Count == 0)
-            order.AddNotification(nameof(Items), "Informe ao menos um item.");
+            order.AddNotification(nameof(Items), "Provide at least one item.");
 
-        // Um agregado inválido não anuncia um fato que não aconteceu.
+        // An invalid aggregate does not announce a fact that never happened.
         if (order.IsValid)
             order.Raise(new OrderPlacedDomainEvent(order.Id));
 
@@ -72,7 +74,7 @@ public sealed class Order : Entity<Guid>, IAggregateRoot
     {
         if (string.IsNullOrWhiteSpace(item))
         {
-            AddNotification(nameof(Items), "O item não pode ser vazio.");
+            AddNotification(nameof(Items), "Item cannot be empty.");
             return;
         }
 
@@ -81,7 +83,7 @@ public sealed class Order : Entity<Guid>, IAggregateRoot
 }
 ```
 
-O handler consulta o agregado e promove as falhas para o contexto da requisição, usando o `AddFrom` do PMQ.Notifications:
+The handler inspects the aggregate and promotes its failures to the request context, using `AddFrom` from PMQ.Notifications:
 
 ```csharp
 var order = Order.Create(request.Items);
@@ -96,9 +98,9 @@ await repository.AddAsync(order, cancellationToken);
 await unitOfWork.SaveChangesAsync(cancellationToken);
 ```
 
-### Igualdade por identidade
+### Identity-based equality
 
-Duas instâncias com o mesmo `Id` **são** a mesma entidade, ainda que todo o resto difira. A comparação também confere o tipo: um `Order` e uma `Invoice` com o mesmo `Guid` não são iguais.
+Two instances with the same `Id` **are** the same entity, even if everything else differs. The comparison also checks the type: an `Order` and an `Invoice` sharing a `Guid` are not equal.
 
 ## Value object
 
@@ -111,7 +113,7 @@ public sealed class Money : ValueObject
     public Money(decimal amount, string currency)
     {
         if (amount < 0)
-            AddNotification(nameof(Amount), "O valor não pode ser negativo.");
+            AddNotification(nameof(Amount), "Amount cannot be negative.");
 
         Amount = amount;
         Currency = currency;
@@ -125,7 +127,7 @@ public sealed class Money : ValueObject
 }
 ```
 
-`record` já dá igualdade por valor de graça. Prefira `ValueObject` quando o tipo também precisar acumular notificações, ou quando a igualdade tiver que ignorar parte dos membros.
+A `record` already gives value equality for free. Prefer `ValueObject` when the type also needs to accumulate notifications, or when equality must ignore some of its members.
 
 ## Domain events
 
@@ -133,7 +135,7 @@ public sealed class Money : ValueObject
 public sealed record OrderPlacedDomainEvent(Guid OrderId) : DomainEvent;
 ```
 
-`DomainEvent` já traz `EventId` (UUID v7, útil para idempotência) e `OccurredOn` em UTC. Como herda de `INotification`, é despachável pelo PMQ.Mediator sem cola nenhuma:
+`DomainEvent` already carries `EventId` (UUID v7, useful for idempotency) and `OccurredOn` in UTC. Since it inherits from `INotification`, it is dispatchable by PMQ.Mediator with no glue at all:
 
 ```csharp
 internal sealed class OrderPlacedHandler(ILogger<OrderPlacedHandler> logger)
@@ -141,15 +143,15 @@ internal sealed class OrderPlacedHandler(ILogger<OrderPlacedHandler> logger)
 {
     public Task Handle(OrderPlacedDomainEvent notification, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Pedido {OrderId} criado.", notification.OrderId);
+        logger.LogInformation("Order {OrderId} created.", notification.OrderId);
         return Task.CompletedTask;
     }
 }
 ```
 
-### Publicando depois do commit
+### Publishing after the commit
 
-Os eventos ficam pendentes no agregado até a transação confirmar. `IHasDomainEvents` permite coletá-los sem reflexão — com EF Core:
+Events stay pending on the aggregate until the transaction commits. `IHasDomainEvents` lets you collect them without reflection — with EF Core:
 
 ```csharp
 public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken)
@@ -167,9 +169,9 @@ public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken)
 
     await context.SaveChangesAsync(cancellationToken);
 
-    // O cast para object seleciona a sobrecarga de despacho dinâmico do publisher, que
-    // resolve os handlers pelo tipo concreto. Sem ele a sobrecarga genérica seria inferida
-    // como Publish<IDomainEvent> e nenhum handler seria encontrado.
+    // The cast to object selects the publisher's dynamic-dispatch overload, which resolves
+    // handlers by the event's concrete type. Without it, the generic overload would be
+    // inferred as Publish<IDomainEvent> and no handler would ever be found.
     foreach (var domainEvent in domainEvents)
         await publisher.Publish((object)domainEvent, cancellationToken);
 
@@ -177,8 +179,8 @@ public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken)
 }
 ```
 
-Publicar **depois** do commit é deliberado: um handler nunca deve observar um fato que a transação acabou não confirmando.
+Publishing **after** the commit is deliberate: a handler must never observe a fact the transaction ended up rolling back.
 
-## Licença
+## License
 
 MIT
