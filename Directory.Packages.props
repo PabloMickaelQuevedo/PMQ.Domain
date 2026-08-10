@@ -5,14 +5,17 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
 
+  <!--
+    Os pacotes PMQ são liberados juntos e testados como um conjunto, então a política é
+    declarar a versão corrente de cada um em vez do mínimo teórico. Um consumidor que
+    instale só este pacote recebe uma combinação coerente, e não a mais antiga que
+    ainda compila.
+  -->
   <ItemGroup>
     <!-- IDomainEvent herda de INotification para ser despachável pelo mediator. -->
-    <PackageVersion Include="PMQ.Mediator" Version="1.0.0" />
-    <!--
-      Entity e ValueObject herdam de Validatable.
-      Exige 1.1.0: é a versão em que Validatable passou para o namespace PMQ.Notifications.
-    -->
-    <PackageVersion Include="PMQ.Notifications" Version="1.1.0" />
+    <PackageVersion Include="PMQ.Mediator" Version="1.1.1" />
+    <!-- Entity e ValueObject herdam de Validatable. -->
+    <PackageVersion Include="PMQ.Notifications" Version="1.1.1" />
   </ItemGroup>
 
   <ItemGroup Label="Testes">
