@@ -13,7 +13,7 @@
   -->
   <ItemGroup>
     <!-- IDomainEvent herda de INotification para ser despachável pelo mediator. -->
-    <PackageVersion Include="PMQ.Mediator" Version="1.1.1" />
+    <PackageVersion Include="PMQ.Mediator" Version="1.1.2" />
     <!-- Entity e ValueObject herdam de Validatable. -->
     <PackageVersion Include="PMQ.Notifications" Version="1.1.2" />
   </ItemGroup>
